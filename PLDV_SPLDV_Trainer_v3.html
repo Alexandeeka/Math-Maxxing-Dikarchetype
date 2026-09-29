@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PLDV & SPLDV Trainer</title>
+<style>
+:root{
+  --bg:#0b1020;--card:#121a2e;--card2:#17213a;--text:#eef3ff;--muted:#9eabc7;
+  --accent:#6ea8ff;--accent2:#8b7cff;--good:#35d07f;--bad:#ff5d73;--line:#293653;
+}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(135deg,#080c18,#111a31);
+font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);line-height:1.5}
+header{padding:28px 18px 18px;max-width:1100px;margin:auto}
+h1{margin:0;font-size:clamp(28px,6vw,48px);letter-spacing:-1px}
+header p{color:var(--muted);margin:8px 0 0}
+nav{position:sticky;top:0;z-index:5;background:#0b1020eF;border-bottom:1px solid var(--line);
+backdrop-filter:blur(12px);overflow:auto;white-space:nowrap}
+.navin{max-width:1100px;margin:auto;display:flex;gap:8px;padding:10px 14px}
+button,.tab{border:0;border-radius:12px;padding:10px 14px;background:var(--card2);color:var(--text);
+cursor:pointer;font-weight:700}.tab.active,button.primary{background:var(--accent);color:#07101f}
+main{max-width:1100px;margin:auto;padding:18px}
+section{display:none}.active-section{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.card{background:linear-gradient(145deg,var(--card),#0f172a);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px}
+.card h2,.card h3{margin-top:0}.small{font-size:.92rem;color:var(--muted)}
+.formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#0a0f1d;
+border:1px solid var(--line);padding:12px;border-radius:10px;overflow:auto}
+.step{border-left:3px solid var(--accent);padding:8px 12px;margin:10px 0;background:#0c1427}
+.tip{background:#172a24;border:1px solid #245b43;padding:12px;border-radius:12px}
+.warn{background:#2c1c21;border:1px solid #63303b;padding:12px;border-radius:12px}
+select,input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0a1020;color:var(--text);
+font-size:1rem;margin:6px 0 10px}
+.options{display:grid;gap:9px}.option{text-align:left;border:1px solid var(--line);background:#0d1528}
+.option:hover{border-color:var(--accent)} .option.correct{border-color:var(--good);background:#123021}
+.option.wrong{border-color:var(--bad);background:#351720}
+.feedback{margin-top:14px;padding:14px;border-radius:12px;border:1px solid var(--line);display:none}
+.feedback.show{display:block}.good{color:var(--good)}.bad{color:var(--bad)}
+.progress{height:8px;background:#202b45;border-radius:99px;overflow:hidden;margin:10px 0 18px}
+.bar{height:100%;background:var(--accent);width:0%;transition:.25s}
+.tag{display:inline-block;padding:4px 9px;border-radius:99px;background:#202b45;color:#cbd7f2;font-size:.8rem;margin:2px}
+.answer{display:none;margin-top:10px}.answer.show{display:block}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.two>*{min-width:0}
+footer{max-width:1100px;margin:30px auto;padding:20px;color:var(--muted);text-align:center}
+@media(max-width:650px){main{padding:12px}.two{grid-template-columns:1fr}.card{padding:15px}}
+</style>
+
+<style>
+.option:disabled { opacity: 1; cursor: not-allowed; }
+.option.correct { border: 2px solid #22c55e; }
+.option.wrong { border: 2px solid #ef4444; }
+.final-result { margin-top: 18px; }
+#essayAnswer { width:100%; box-sizing:border-box; resize:vertical; padding:12px; border-radius:10px; }
+.feedback pre { white-space:pre-wrap; margin-top:10px; }
+</style>
+
+</head>
+<body>
+<header>
+  <h1>PLDV & SPLDV Trainer</h1>
+  <p>Belajar konsep → lihat cara → latihan 15 soal → soal acak tanpa habis.</p>
+</header>
+
+<nav><div class="navin">
+  <button class="tab active" data-target="home">🏠 Ringkasan</button>
+<button class="tab" data-target="semua">🧠 Semua Materi</button>
+  <button class="tab" data-target="belajar">📚 Cara Menyelesaikan</button>
+  <button class="tab" data-target="latihan">🎯 Latihan 15 Soal</button>
+  <button class="tab" data-target="acak">🎲 Soal Random</button>
+</div></nav>
+
+<main>
+<section id="home" class="active-section">
+  <div class="card">
+    <h2>Yang perlu kamu kuasai</h2>
+    <span class="tag">PLDV</span><span class="tag">SPLDV</span><span class="tag">HP</span>
+    <span class="tag">Grafik</span><span class="tag">Substitusi</span><span class="tag">Eliminasi</span>
+    <span class="tag">Soal cerita</span><span class="tag">Model matematika</span>
+    <p>Kalau di buku kamu ada soal seperti foto, bagian yang paling penting bukan cuma menghitung
+    <b>x dan y</b>, tetapi juga bisa <b>membentuk persamaan dari kalimat</b> dan menentukan
+    <b>HP (Himpunan Penyelesaian)</b>.</p>
+  </div>
+  <div class="grid">
+    <div class="card"><h3>PLDV</h3><p>Persamaan linear dengan <b>dua variabel</b>, misalnya:</p>
+      <div class="formula">2x + 3y = 12</div>
+      <p class="small">x dan y berpangkat 1, tidak dikali satu sama lain.</p></div>
+    <div class="card"><h3>SPLDV</h3><p>Dua PLDV yang dicari nilai x dan y yang memenuhi <b>keduanya</b>.</p>
+      <div class="formula">x + y = 7<br>2x + y = 10</div></div>
+    <div class="card"><h3>HP</h3><p><b>Himpunan Penyelesaian</b> adalah kumpulan pasangan nilai yang memenuhi persamaan.</p>
+      <div class="formula">x = 3, y = 4 → HP = {(3, 4)}</div></div>
+  </div>
+</section>
+
+
+<section id="semua">
+  <div class="card">
+    <h2>🧠 Bank Materi UTS — Kelas 7 sampai 9</h2>
+    <p>Mode ini dibuat supaya kalau nanti soal UTS ternyata keluar dari materi yang tidak ada di latihan PLDV/SPLDV, kamu tetap punya tempat untuk latihan. Urutan materi tetap bisa berbeda menurut sekolah.</p>
+    <div class="grid">
+      <div class="card"><h3>⚡ Pangkat & Bentuk Akar</h3>
+        <ul><li>Pangkat positif, negatif, nol</li><li>Operasi perpangkatan</li><li>Menyederhanakan akar</li><li>Operasi bentuk akar</li><li>Merasionalkan penyebut</li></ul>
+        <div class="formula">aᵐ × aⁿ = aᵐ⁺ⁿ<br>aᵐ ÷ aⁿ = aᵐ⁻ⁿ<br>√a × √b = √(ab)</div>
+      </div>
+      <div class="card"><h3>🔢 Aljabar & PLSV</h3>
+        <ul><li>Operasi bentuk aljabar</li><li>Persamaan linear satu variabel</li><li>Distribusi dan menyederhanakan suku</li><li>Soal cerita</li></ul>
+        <div class="formula">ax + b = c → x = (c − b)/a</div>
+      </div>
+      <div class="card"><h3>📈 PLDV & SPLDV</h3>
+        <ul><li>Definisi PLDV</li><li>HP</li><li>Grafik</li><li>Substitusi</li><li>Eliminasi</li><li>Campuran</li><li>Model matematika & soal cerita</li></ul>
+        <div class="formula">ax + by = c</div>
+      </div>
+      <div class="card"><h3>📐 Garis & Gradien</h3>
+        <ul><li>Koordinat Kartesius</li><li>Persamaan garis</li><li>Gradien</li><li>Titik potong</li></ul>
+        <div class="formula">m = (y₂ − y₁)/(x₂ − x₁)<br>y = mx + c</div>
+      </div>
+      <div class="card"><h3>📏 Pythagoras</h3>
+        <ul><li>Sisi miring</li><li>Mencari sisi siku-siku</li><li>Tripel Pythagoras</li><li>Soal cerita jarak</li></ul>
+        <div class="formula">a² + b² = c²</div>
+      </div>
+      <div class="card"><h3>⭕ Lingkaran</h3>
+        <ul><li>Jari-jari & diameter</li><li>Keliling</li><li>Luas</li><li>Soal gabungan sederhana</li></ul>
+        <div class="formula">K = 2πr<br>L = πr²</div>
+      </div>
+      <div class="card"><h3>📊 Data</h3>
+        <ul><li>Rata-rata</li><li>Median</li><li>Modus</li><li>Membaca tabel/diagram</li></ul>
+        <div class="formula">mean = jumlah data / banyak data</div>
+      </div>
+      <div class="card"><h3>📦 Bangun Datar & Perbandingan</h3>
+        <ul><li>Luas & keliling</li><li>Perbandingan</li><li>Skala</li><li>Persen</li><li>Segitiga & segiempat</li></ul>
+      </div>
+      <div class="card"><h3>🧩 Himpunan, Garis & Sudut</h3>
+        <ul><li>Himpunan dan anggota</li><li>Diagram Venn sederhana</li><li>Sudut berpelurus/bertolak belakang</li><li>Sudut segitiga</li></ul>
+        <div class="formula">Jumlah sudut segitiga = 180°</div>
+      </div>
+      <div class="card"><h3>🟦 Relasi & Fungsi</h3>
+        <ul><li>Relasi</li><li>Fungsi</li><li>Domain, kodomain, range</li><li>Nilai fungsi</li></ul>
+        <div class="formula">f(x) = 2x + 3</div>
+      </div>
+      <div class="card"><h3>🔺 Persamaan Kuadrat</h3>
+        <ul><li>Bentuk umum</li><li>Faktorisasi</li><li>Akar-akar</li><li>Rumus ABC jika sudah diajarkan</li></ul>
+        <div class="formula">ax² + bx + c = 0</div>
+      </div>
+      <div class="card"><h3>🔄 Transformasi</h3>
+        <ul><li>Translasi</li><li>Refleksi</li><li>Rotasi</li><li>Dilatasi</li><li>Koordinat hasil transformasi</li></ul>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>🔥 Prioritas kalau waktumu sedikit</h3>
+    <p><b>Operasi aljabar → PLSV → PLDV → SPLDV → garis/gradien → Pythagoras → pangkat/akar → perbandingan.</b></p>
+    <p class="small">Lalu latihan materi lain kalau guru kamu sudah mengajarkannya.</p>
+  </div>
+</section>
+
+<section id="belajar">
+  <div class="card">
+    <h2>📚 Panduan dari dasar</h2>
+    <h3>1. Mengenali PLDV</h3>
+    <p>Bentuk sederhananya:</p><div class="formula">ax + by = c</div>
+    <p>a, b, c adalah konstanta; x dan y adalah variabel. Disebut <b>linear</b> karena pangkat
+    variabelnya 1.</p>
+    <div class="tip"><b>Contoh PLDV:</b> 3x − 2y = 8, x + 5y = 13.</div>
+    <div class="warn"><b>Bukan PLDV:</b> x² + y = 5, xy = 10, 1/x + y = 4.</div>
+
+    <h3>2. Mengubah cerita menjadi PLDV</h3>
+    <div class="step"><b>Langkah 1:</b> Tentukan arti x dan y.</div>
+    <div class="step"><b>Langkah 2:</b> Ambil informasi harga/jumlah dari soal.</div>
+    <div class="step"><b>Langkah 3:</b> Ubah kata “jumlah”, “total”, atau “seharga” menjadi persamaan.</div>
+    <div class="step"><b>Langkah 4:</b> Cek kembali satuan dan angka.</div>
+    <p><b>Contoh:</b> 2 buku dan 3 pulpen seharga Rp7.000.</p>
+    <div class="formula">x = harga 1 buku<br>y = harga 1 pulpen<br>2x + 3y = 7000</div>
+
+    <h3>3. Menentukan HP tanpa menyelesaikan SPLDV</h3>
+    <p>Kalau soal bertanya “tentukan himpunan penyelesaian”, maksudnya cari <b>pasangan (x,y)</b>
+    yang memenuhi dua persamaan.</p>
+    <div class="step">Misal x = 3 dan y = 4.</div>
+    <div class="step">Cek persamaan pertama. Jika benar, cek persamaan kedua.</div>
+    <div class="step">Jika keduanya benar → <b>HP = {(3,4)}</b>.</div>
+
+    <h3>4. Metode grafik</h3>
+    <p>Ubah masing-masing persamaan menjadi garis. <b>Titik potong kedua garis</b> adalah HP.</p>
+    <div class="formula">x + y = 5 → y = 5 − x<br>2x + y = 7 → y = 7 − 2x</div>
+    <p class="small">Keduanya berpotongan di (2,3), jadi HP = {(2,3)}.</p>
+
+    <h3>5. Metode substitusi</h3>
+    <div class="step">1) Ubah salah satu persamaan menjadi x = ... atau y = ...</div>
+    <div class="step">2) Masukkan (substitusikan) ke persamaan satunya.</div>
+    <div class="step">3) Dapatkan salah satu variabel.</div>
+    <div class="step">4) Masukkan kembali untuk mencari variabel lainnya.</div>
+    <div class="formula">
+      x + y = 7<br>
+      2x + y = 10<br><br>
+      Dari pertama: y = 7 − x<br>
+      Substitusi: 2x + (7 − x) = 10<br>
+      x = 3 → y = 4<br>
+      HP = {(3,4)}
+    </div>
+
+    <h3>6. Metode eliminasi</h3>
+    <div class="step">1) Samakan koefisien salah satu variabel jika perlu.</div>
+    <div class="step">2) Jumlahkan/kurangkan kedua persamaan agar variabel tersebut hilang.</div>
+    <div class="step">3) Dapatkan variabel pertama, lalu cari variabel kedua.</div>
+    <div class="formula">
+      x + y = 7<br>
+      2x + y = 10<br><br>
+      Kurangkan persamaan kedua dengan pertama:<br>
+      x = 3 → y = 4<br>
+      HP = {(3,4)}
+    </div>
+
+    <h3>7. Metode campuran</h3>
+    <p>Boleh mengeliminasi satu variabel dulu, lalu memakai substitusi untuk variabel yang lain.
+    Pilih metode yang membuat hitungan paling sederhana.</p>
+
+    <h3>8. Soal cerita: trik cepat</h3>
+    <div class="formula">
+      “jumlah” → +<br>
+      “selisih” → −<br>
+      “dua kali x” → 2x<br>
+      “tiga buku @x” → 3x<br>
+      “total harga” → jumlah semua harga = total
+    </div>
+    <p class="tip"><b>Jangan langsung menghitung.</b> Tulis arti x dan y terlebih dahulu. Ini
+    biasanya bagian yang paling bikin bingung di soal seperti foto kamu.</p>
+  </div>
+</section>
+
+
+<section id="latihan">
+  <div class="card">
+    <h2>🎯 Latihan 15 Soal — Campuran UTS</h2>
+    <p>Soalnya sekarang tidak hanya PLDV/SPLDV. Bank latihan mencakup materi yang mungkin menjadi materi utama atau prasyarat.</p>
+    <label><b>Fokus latihan</b></label>
+    <select id="focusSelect">
+      <option value="campur">Campur semua materi</option>
+      <option value="spldv">PLDV / SPLDV</option>
+      <option value="aljabar">Aljabar / PLSV</option>
+      <option value="pangkat">Pangkat / akar</option>
+      <option value="geometri">Pythagoras / lingkaran / bangun</option>
+      <option value="garis">Koordinat / garis / gradien</option>
+      <option value="data">Data / perbandingan / persen</option>
+    </select>
+    <button class="primary" onclick="startMixed()">🔄 Buat Paket 15 Soal Baru</button>
+    <div class="progress"><div id="bar" class="bar"></div></div>
+    <div id="quiz"></div>
+    <div class="two">
+      <button id="prev">← Sebelumnya</button>
+      <button id="next" class="primary">Berikutnya →</button>
+    </div>
+    <p id="score" class="small"></p>
+  </div>
+</section>
+<section id="acak">
+  <div class="card">
+    <h2>🎲 Generator Soal Random</h2>
+    <p>Setiap kali menekan tombol, tipe dan angka soal akan diacak. Setelah menjawab, kamu
+    langsung mendapat penjelasan.</p>
+    <button class="primary" onclick="newRandom()">Buat Soal Random</button>
+    <div id="randomBox" style="margin-top:16px"></div>
+  </div>
+</section>
+</main>
+<footer>PLDV & SPLDV Trainer • dibuat untuk latihan belajar Matematika SMP</footer>
+
+<script>
+
+const Q=[];
+
+function addQ(topic,q,o,a,e){Q.push({topic,q,o,a,e});}
+function money(n){return "Rp"+n.toLocaleString("id-ID");}
+function gcd(a,b){while(b){[a,b]=[b,a%b]}return Math.abs(a);}
+function shuffle(a){return [...a].sort(()=>Math.random()-0.5);}
+
+function buildBank(){
+  Q.length=0;
+
+  // PLDV / SPLDV
+  addQ("PLDV","Manakah yang merupakan Persamaan Linear Dua Variabel?",
+    ["2x + 3y = 7","x² + y = 9","xy = 12","2x + 5 = 9"],0,
+    "PLDV memiliki dua variabel dan pangkat variabelnya 1.");
+  addQ("PLDV","Manakah yang BUKAN PLDV?",
+    ["x + y = 10","3x − 2y = 5","x² + y = 8","4x + y = 12"],2,
+    "x² + y = 8 bukan PLDV karena x berpangkat 2.");
+  let sx=Math.floor(Math.random()*7)+1, sy=Math.floor(Math.random()*7)+1;
+  addQ("SPLDV","Tentukan HP dari x + y = "+(sx+sy)+" dan 2x + y = "+(2*sx+sy)+".",
+    ["{("+sx+","+sy+")}","{("+sy+","+sx+")}","{("+(sx+1)+","+(sy-1)+")}","{("+(sx-1)+","+(sy+1)+")}"],0,
+    "Kurangkan persamaan kedua dengan pertama sehingga x = "+sx+". Lalu y = "+sy+". Jadi HP = {("+sx+","+sy+")}.");
+  let A=2,B=3,xx=2,yy=3,C=A*xx+B*yy;
+  addQ("SPLDV","Harga 1 buku = x dan 1 pensil = y. Model untuk "+A+" buku dan "+B+" pensil seharga "+money(C)+" adalah ...",
+    [`${A}x + ${B}y = ${C}`,`${B}x + ${A}y = ${C}`,`${A}x − ${B}y = ${C}`,`x + y = ${C}`],0,
+    A+" buku = "+A+"x dan "+B+" pensil = "+B+"y, lalu jumlahnya sama dengan total harga.");
+  addQ("SPLDV","Pada metode grafik SPLDV, HP ditunjukkan oleh ...",
+    ["titik potong kedua garis","titik paling tinggi","semua titik pada sumbu x","titik asal saja"],0,
+    "HP adalah pasangan yang memenuhi kedua persamaan, sehingga pada grafik menjadi titik potong kedua garis.");
+  addQ("SPLDV","Tujuan utama metode eliminasi adalah ...",
+    ["menghilangkan salah satu variabel","membuat persamaan kuadrat","menggambar lingkaran","mencari median"],0,
+    "Koefisien dibuat sesuai agar salah satu variabel hilang saat persamaan dijumlahkan atau dikurangkan.");
+  addQ("SPLDV","Dari x + y = 9, bentuk y untuk substitusi adalah ...",
+    ["y = 9 − x","y = x − 9","y = 9x","y = x + 9"],0,
+    "Pindahkan x ke ruas kanan sehingga y = 9 − x.");
+  addQ("SPLDV","Umur Ari 7 tahun lebih tua dari Sani dan jumlah umur mereka 43. Jika x=Ari, y=Sani, model yang benar ...",
+    ["x+y=43 dan x−y=7","x+y=7 dan x−y=43","x+y=43 dan x+y=7","x−y=43 dan x−y=7"],0,
+    "Jumlah umur → x+y=43. Ari 7 tahun lebih tua → x−y=7.");
+
+  // Aljabar / PLSV
+  let p=Math.floor(Math.random()*8)+2;
+  addQ("Aljabar","Nilai x yang memenuhi "+p+"x + "+(p+2)+" = "+(4*p+2)+" adalah ...",
+    ["2","3","4","5"],0,
+    p+"x + "+(p+2)+" = "+(4*p+2) +" → "+p+"x = "+(3*p)+" → x = 3.");
+  addQ("Aljabar","Hasil dari 3x + 5x − 2 adalah ...",
+    ["8x − 2","8x + 2","2x − 2","15x − 2"],0,
+    "Suku sejenis dijumlahkan: 3x + 5x = 8x.");
+  addQ("Aljabar","Jika 2(a + 3) = 14, maka a = ...",
+    ["4","5","7","8"],0,
+    "2a+6=14 → 2a=8 → a=4.");
+
+  // Pangkat / akar
+  addQ("Pangkat","Nilai 2³ × 2² adalah ...",["2⁵ = 32","2⁶ = 64","2⁴ = 16","2 = 2"],0,
+    "Jika basis sama, pangkat dijumlahkan: 2³×2²=2⁵=32.");
+  addQ("Pangkat","Nilai 5⁰ adalah ...",["0","1","5","10"],1,
+    "Bilangan bukan nol berpangkat 0 bernilai 1.");
+  addQ("Pangkat","Sederhanakan √50.",["5√2","2√5","10√5","25√2"],0,
+    "√50 = √(25×2) = 5√2.");
+  addQ("Pangkat","Hasil √8 × √2 adalah ...",["2","4","8","16"],1,
+    "√8×√2 = √16 = 4.");
+
+  // Garis / koordinat / gradien
+  addQ("Garis","Gradien garis melalui (2,3) dan (6,11) adalah ...",["1","2","3","4"],1,
+    "m=(11−3)/(6−2)=8/4=2.");
+  addQ("Garis","Jika y = 3x + 5, gradiennya adalah ...",["3","5","−3","−5"],0,
+    "Pada y=mx+c, m adalah gradien. Jadi m=3.");
+  addQ("Garis","Titik (−2,4) berada pada kuadran ...",["I","II","III","IV"],1,
+    "x negatif dan y positif berarti Kuadran II.");
+
+  // Pythagoras
+  addQ("Geometri","Sisi siku-siku segitiga adalah 3 cm dan 4 cm. Sisi miringnya ...",["5 cm","6 cm","7 cm","8 cm"],0,
+    "c²=3²+4²=25 sehingga c=5.");
+  addQ("Geometri","Sisi miring 13 cm dan salah satu sisi siku-siku 5 cm. Sisi lainnya ...",["8 cm","10 cm","12 cm","14 cm"],2,
+    "b²=13²−5²=169−25=144 sehingga b=12.");
+  addQ("Geometri","Rumus Teorema Pythagoras untuk sisi miring c adalah ...",
+    ["a²+b²=c²","a+b=c²","a²−b²=c²","2a+2b=c"],0,
+    "Pada segitiga siku-siku, jumlah kuadrat dua sisi siku-siku sama dengan kuadrat sisi miring.");
+
+  // Lingkaran / bangun
+  addQ("Geometri","Jika r=7 cm dan π=22/7, keliling lingkaran adalah ...",
+    ["22 cm","44 cm","154 cm","308 cm"],1,
+    "K=2πr=2×22/7×7=44 cm.");
+  addQ("Geometri","Jika r=7 cm dan π=22/7, luas lingkaran adalah ...",
+    ["44 cm²","77 cm²","154 cm²","308 cm²"],2,
+    "L=πr²=22/7×49=154 cm².");
+
+  // Perbandingan / persen
+  addQ("Data","Perbandingan 12 : 18 dalam bentuk paling sederhana adalah ...",
+    ["2 : 3","3 : 2","4 : 5","6 : 9"],0,
+    "Keduanya dibagi 6 sehingga menjadi 2 : 3.");
+  addQ("Data","20% dari 150 adalah ...",["20","25","30","35"],2,
+    "20/100×150=30.");
+  addQ("Data","Harga Rp80.000 mendapat diskon 25%. Harga setelah diskon ...",
+    [money(60000),money(65000),money(70000),money(75000)],0,
+    "Diskon=25%×80.000=20.000. Harga akhir=80.000−20.000=60.000.");
+
+  // Data
+  addQ("Data","Rata-rata dari 6, 8, 10, 12 adalah ...",["8","9","10","11"],1,
+    "(6+8+10+12)/4=36/4=9.");
+  addQ("Data","Modus dari 2, 3, 3, 4, 5, 3, 6 adalah ...",["2","3","4","6"],1,
+    "Angka yang paling sering muncul adalah 3.");
+  addQ("Data","Median dari 3, 5, 7, 8, 10 adalah ...",["5","7","8","10"],1,
+    "Data sudah urut dan jumlahnya ganjil, jadi median adalah nilai tengah: 7.");
+
+  // Himpunan / sudut / segitiga
+  addQ("Himpunan","Jika A={1,2,3,4}, maka banyak anggota A adalah ...",["2","3","4","5"],2,
+    "Ada empat anggota: 1,2,3,4.");
+  addQ("Geometri","Dua sudut segitiga adalah 50° dan 60°. Sudut ketiga adalah ...",
+    ["60°","70°","80°","90°"],1,
+    "Jumlah sudut segitiga 180°. Jadi 180−50−60=70°.");
+
+  // Relasi fungsi
+  addQ("Fungsi","Jika f(x)=2x+3, maka f(4)= ...",["7","9","11","12"],1,
+    "f(4)=2(4)+3=11. Jadi pilihan yang benar adalah 11.");
+  Q[Q.length-1].o=["7","9","11","13"]; Q[Q.length-1].a=2;
+
+  // Kuadrat
+  addQ("Kuadrat","Akar-akar dari x²−5x+6=0 adalah ...",
+    ["1 dan 6","2 dan 3","−2 dan −3","3 dan 5"],1,
+    "Faktorkan: (x−2)(x−3)=0, jadi x=2 atau x=3.");
+  addQ("Kuadrat","Bentuk umum persamaan kuadrat adalah ...",
+    ["ax²+bx+c=0","ax+b=0","ax³+bx²+c=0","a/x+b=0"],0,
+    "Bentuk umum persamaan kuadrat adalah ax²+bx+c=0 dengan a≠0.");
+
+  // Transformasi
+  addQ("Transformasi","Translasi berarti ...",
+    ["pergeseran","pencerminan","perputaran","perbesaran"],0,
+    "Translasi adalah perpindahan/pergeseran suatu titik atau bangun.");
+  addQ("Transformasi","Refleksi berarti ...",
+    ["pergeseran","pencerminan","perputaran","penjumlahan"],1,
+    "Refleksi adalah pencerminan terhadap garis tertentu.");
+}
+
+function makeMixedPool(focus){
+  const map={
+    spldv:["PLDV","SPLDV"],aljabar:["Aljabar"],pangkat:["Pangkat"],
+    geometri:["Geometri"],garis:["Garis"],data:["Data"]
+  };
+  if(focus==="campur") return Q;
+  const cats=map[focus]||[];
+  return Q.filter(x=>cats.includes(x.topic));
+}
+let mixed=[], qi=0, answers=[];
+
+function startMixed(){
+  buildBank();
+  const pool=makeMixedPool(document.getElementById("focusSelect").value);
+  mixed=shuffle(pool).slice(0,15);
+  // Kalau fokus tertentu punya <15 soal, isi sisanya dengan soal dari kategori itu secara berulang.
+  while(mixed.length<15 && pool.length) mixed.push(pool[mixed.length%pool.length]);
+  qi=0;answers=Array(mixed.length).fill(null);renderQuiz();
+}
+function renderQuiz(){
+  if(!mixed.length) return;
+  const d=mixed[qi],box=document.getElementById("quiz");
+  const answered=answers[qi]!==null;
+  const selected=answers[qi];
+  box.innerHTML=`<span class="tag">${d.topic}</span><h3>Soal ${qi+1}/${mixed.length}</h3>
+  <p>${d.q}</p>
+  <div class="options">${d.o.map((x,i)=>{
+    let cls="option";
+    if(answered && i===d.a) cls+=" correct";
+    if(answered && i===selected && selected!==d.a) cls+=" wrong";
+    return `<button class="${cls}" ${answered?"disabled":""}
+      onclick="answerMixed(${i})">${String.fromCharCode(65+i)}. ${x}</button>`;
+  }).join("")}</div>
+  <div class="feedback ${answered?'show':''}">${
+    answered
+      ? (selected===d.a
+          ? '<b class="good">✅ Benar!</b> '
+          : '<b class="bad">❌ Salah.</b> Jawaban yang benar adalah <b>'+String.fromCharCode(65+d.a)+'. '+d.o[d.a]+'</b><br>')
+        + d.e
+      : ''
+  }</div>`;
+  document.getElementById("bar").style.width=((qi+1)/mixed.length*100)+"%";
+
+  const correctCount=answers.reduce((n,x,i)=>n+(x!==null && x===mixed[i].a?1:0),0);
+  document.getElementById("score").textContent=
+    "Benar: "+correctCount+" / "+mixed.length+
+    (answers.every(x=>x!==null) ? " • Selesai! Nilai: "+Math.round(correctCount/mixed.length*100) : "");
+
+  const next=document.getElementById("next");
+  next.textContent=answers.every(x=>x!==null) ? "Lihat Nilai" : "Berikutnya →";
+
+  // Setelah semua terjawab, tampilkan ringkasan nilai di bawah soal.
+  let result=document.getElementById("finalResult");
+  if(!result){
+    result=document.createElement("div");
+    result.id="finalResult";
+    result.className="card final-result";
+    box.parentElement.appendChild(result);
+  }
+  if(answers.every(x=>x!==null)){
+    result.innerHTML=`<h3>🏁 Latihan Selesai!</h3>
+      <p><b>Nilai: ${Math.round(correctCount/mixed.length*100)}/100</b></p>
+      <p>Benar: ${correctCount} dari ${mixed.length} soal.</p>
+      <button class="primary" onclick="startMixed()">🔄 Ulangi dengan 15 soal baru</button>`;
+    result.style.display="block";
+  }else{
+    result.style.display="none";
+  }
+}
+function answerMixed(i){
+  if(answers[qi]!==null) return; // sudah dijawab → tidak bisa diganti
+  answers[qi]=i;
+  renderQuiz();
+}
+document.getElementById("prev").onclick=()=>{qi=Math.max(0,qi-1);renderQuiz()};
+document.getElementById("next").onclick=()=>{
+  if(answers.every(x=>x!==null)){
+    const result=document.getElementById("finalResult");
+    if(result) result.scrollIntoView({behavior:"smooth",block:"center"});
+    return;
+  }
+  qi=Math.min(mixed.length-1,qi+1);
+  renderQuiz();
+};
+
+// Random generator yang benar-benar mencakup semua kelompok materi.
+function randomQuestion(){
+  buildBank();
+  return Q[Math.floor(Math.random()*Q.length)];
+}
+let randomMode="mc";
+let currentRandom=null;
+
+function newRandom(){
+  buildBank();
+  randomMode="mc";
+  currentRandom=Q[Math.floor(Math.random()*Q.length)];
+  renderRandomMC();
+}
+
+function renderRandomMC(){
+  const d=currentRandom;
+  document.getElementById("randomBox").innerHTML=`<div class="card">
+    <span class="tag">${d.topic}</span>
+    <h3>🎲 Soal Random</h3>
+    <p>${d.q}</p>
+    <div class="options">${d.o.map((v,i)=>
+      `<button class="option" onclick="checkRandom(this,${i})">${String.fromCharCode(65+i)}. ${v}</button>`).join("")}
+    </div>
+    <div id="rfb" class="feedback"></div>
+    <div class="two">
+      <button onclick="newRandom()">🎲 Soal Random Lagi</button>
+      <button onclick="newEssayRandom()">✍️ Random Esai</button>
+    </div>
+  </div>`;
+}
+
+function checkRandom(btn,i){
+  const d=currentRandom;
+  const all=btn.parentElement.querySelectorAll("button");
+  all.forEach(x=>x.disabled=true);
+
+  const fb=document.getElementById("rfb");
+  if(i===d.a){
+    btn.classList.add("correct");
+    fb.innerHTML='<b class="good">✅ Benar!</b><br>'+d.e;
+  }else{
+    btn.classList.add("wrong");
+    all[d.a].classList.add("correct");
+    fb.innerHTML='<b class="bad">❌ Salah!</b><br>Jawaban yang benar: <b>'+
+      String.fromCharCode(65+d.a)+'. '+d.o[d.a]+'</b><br>'+d.e;
+  }
+  fb.classList.add("show");
+}
+
+function newEssayRandom(){
+  buildBank();
+  // Esai dibuat dari soal yang punya jawaban numerik yang mudah dinilai dari jawaban akhir.
+  const essayBank=[
+    {topic:"Hitung",q:"Hitung: 1 + 2 × 3",answer:"7",steps:"2 × 3 : 6\\n6 + 1 : 7"},
+    {topic:"Aljabar",q:"Tentukan x: 3x + 6 = 18",answer:"4",steps:"3x : 18 − 6\\n3x : 12\\nx : 4"},
+    {topic:"Pangkat",q:"Hitung: 2³ + 4",answer:"12",steps:"2³ : 8\\n8 + 4 : 12"},
+    {topic:"Pythagoras",q:"Segitiga siku-siku memiliki sisi 3 cm dan 4 cm. Berapa sisi miringnya?",answer:"5",steps:"c² : 3² + 4²\\nc² : 25\\nc : 5"},
+    {topic:"Persen",q:"Berapa 20% dari 150?",answer:"30",steps:"20/100 × 150 : 30"},
+    {topic:"Gradien",q:"Gradien garis melalui (2,3) dan (6,11) adalah ...",answer:"2",steps:"m : (11 − 3) / (6 − 2)\\nm : 8 / 4\\nm : 2"},
+    {topic:"Lingkaran",q:"Jika r = 7 cm dan π = 22/7, berapa keliling lingkaran?",answer:"44",steps:"K : 2 × 22/7 × 7\\nK : 44"},
+    {topic:"Data",q:"Rata-rata dari 6, 8, 10, 12 adalah ...",answer:"9",steps:"(6 + 8 + 10 + 12) / 4 : 36 / 4\\n: 9"}
+  ];
+  currentRandom=essayBank[Math.floor(Math.random()*essayBank.length)];
+  document.getElementById("randomBox").innerHTML=`<div class="card">
+    <span class="tag">${currentRandom.topic} • Esai</span>
+    <h3>✍️ Soal Esai Random</h3>
+    <p>${currentRandom.q}</p>
+    <p class="small">Tulis cara pengerjaan kalau mau. Penilaian hanya melihat <b>jawaban akhir</b>.</p>
+    <textarea id="essayAnswer" rows="6" placeholder="Contoh:
+1 + 2 × 3
+2 × 3 : 6
+6 + 1 : 7"></textarea>
+    <button class="primary" onclick="checkEssay()">✅ Periksa Jawaban</button>
+    <button onclick="newEssayRandom()">✍️ Esai Random Lagi</button>
+    <div id="rfb" class="feedback"></div>
+  </div>`;
+}
+
+function normalizeFinalAnswer(text){
+  // Ambil baris terakhir yang berisi angka. Mendukung desimal/koma dan satuan umum.
+  const lines=text.split(/\n/).map(x=>x.trim()).filter(Boolean);
+  for(let i=lines.length-1;i>=0;i--){
+    let line=lines[i]
+      .replace(/,/g,".")
+      .replace(/[^\d.\-]/g," ")
+      .trim();
+    const nums=line.match(/-?\d+(?:\.\d+)?/g);
+    if(nums && nums.length) return nums[nums.length-1];
+  }
+  return null;
+}
+function sameNumber(a,b){
+  const x=Number(a), y=Number(b);
+  return Number.isFinite(x)&&Number.isFinite(y)&&Math.abs(x-y)<1e-9;
+}
+function checkEssay(){
+  const input=document.getElementById("essayAnswer");
+  const fb=document.getElementById("rfb");
+  const final=normalizeFinalAnswer(input.value);
+  if(final===null){
+    fb.innerHTML='<b class="bad">⚠️ Belum terbaca.</b> Tulis jawaban akhir berupa angka di baris terakhir.';
+    fb.classList.add("show");
+    return;
+  }
+  if(sameNumber(final,currentRandom.answer)){
+    fb.innerHTML='<b class="good">✅ Benar!</b> Jawaban akhir kamu = <b>'+final+
+      '</b>. Cara boleh kamu tulis panjang; yang dinilai adalah jawaban akhirnya.<br><br><b>Contoh penyelesaian:</b><pre>'+
+      currentRandom.steps+'</pre>';
+  }else{
+    fb.innerHTML='<b class="bad">❌ Salah.</b> Jawaban akhir kamu = <b>'+final+
+      '</b>, sedangkan jawaban yang benar adalah <b>'+currentRandom.answer+
+      '</b>.<br><br><b>Cara:</b><pre>'+currentRandom.steps+'</pre>';
+  }
+  fb.classList.add("show");
+}
+
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll("section").forEach(x=>x.classList.remove("active-section"));
+  b.classList.add("active");
+  document.getElementById(b.dataset.target).classList.add("active-section");
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+
+buildBank();
+startMixed();
+newRandom();
+
+</script>
+</body>
+</html>
